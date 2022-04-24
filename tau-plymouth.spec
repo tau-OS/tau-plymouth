@@ -31,6 +31,7 @@ install tau.script -t %{buildroot}%{_datadir}/plymouth/themes/tau
 plymouth-set-default-theme tau -R
 
 %files
+%doc README.md
 %license licenses/LICENSE
 %dir %{_datadir}/plymouth/themes/tau
 %{_datadir}/plymouth/themes/tau/*
