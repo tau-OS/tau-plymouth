@@ -28,7 +28,11 @@ install tau.plymouth -t %{buildroot}%{_datadir}/plymouth/themes/tau
 install tau.script -t %{buildroot}%{_datadir}/plymouth/themes/tau
 
 %post
-plymouth-set-default-theme tau
+if [ $1 -gt 1 ] && [ -e /boot/vmlinuz-$(uname -r) ] && [ -e /sbin/depmod ] && [ -x %{_sbindir}/dracut ]; then
+  plymouth-set-default-theme tau -R
+else
+  plymouth-set-default-theme tau
+fi
 
 %files
 %doc README.md
