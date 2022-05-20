@@ -1,7 +1,7 @@
 Summary:        tauOS Plymouth Theme
 Name:           tau-plymouth
 Version:        1.1
-Release:        2
+Release:        3
 License:        GPLv3
 URL:            https://tauos.co
 Source0:        %{name}-%{version}.tar.gz
@@ -28,7 +28,7 @@ install tau.plymouth -t %{buildroot}%{_datadir}/plymouth/themes/tau
 install tau.script -t %{buildroot}%{_datadir}/plymouth/themes/tau
 
 %post
-plymouth-set-default-theme tau -R
+plymouth-set-default-theme tau
 
 %files
 %doc README.md
