@@ -1,7 +1,7 @@
 Summary:        tauOS Plymouth Theme
 Name:           tau-plymouth
 Version:        1.1
-Release:        6
+Release:        7
 License:        GPLv3
 URL:            https://tauos.co
 Source0:        %{name}-%{version}.tar.gz
