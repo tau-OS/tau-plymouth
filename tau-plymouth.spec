@@ -4,7 +4,7 @@ Version:        1.1
 Release:        7
 License:        GPLv3
 URL:            https://tauos.co
-Source0:        https://github.com/tau-OS/tau-plymouth/archive/refs/heads/main.zip
+Source0:        .
 BuildArch:      noarch
 
 Requires:       plymouth-scripts
