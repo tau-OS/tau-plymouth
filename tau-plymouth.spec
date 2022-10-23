@@ -12,8 +12,6 @@ Requires:       plymouth-scripts
 %description
 A nice looking Plymouth theme for tauOS
 
-%prep
-%setup -q
 %build
 
 %install
