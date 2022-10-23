@@ -4,7 +4,7 @@ Version:        1.1
 Release:        7
 License:        GPLv3
 URL:            https://tauos.co
-Source0:        .
+Source0:        https://github.com/tau-OS/tau-plymouth/archive/refs/heads/main.zip
 BuildArch:      noarch
 
 Requires:       plymouth-scripts
@@ -12,8 +12,9 @@ Requires:       plymouth-scripts
 %description
 A nice looking Plymouth theme for tauOS
 
+%prep
+%setup -q -n tau-plymouth-main
 %build
-
 %install
 
 # Install licenses
