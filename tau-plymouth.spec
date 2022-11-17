@@ -1,13 +1,14 @@
 Summary:        tauOS Plymouth Theme
 Name:           tau-plymouth
 Version:        1.1
-Release:        7
+Release:        8
 License:        GPLv3
 URL:            https://tauos.co
 Source0:        https://github.com/tau-OS/tau-plymouth/archive/refs/heads/main.zip
 BuildArch:      noarch
 
 Requires:       plymouth-scripts
+Requires:       plymouth-plugin-script
 
 %description
 A nice looking Plymouth theme for tauOS
