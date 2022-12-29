@@ -1,247 +1,490 @@
-#Based on work by Lozano Juan Pablo <libredeb@gmail.com>
-#Forked by Jade
+ /**************************************************************************
+ *
+ * Copyright (C) 2022 Fyra Labs
+ * Copyright (C) 2011 The Ubuntu Community
+ * Copyright (C) 2009 Canonical Ltd.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Written by: Mad Nick <dr.madnick@gmail.com>
+ * Modified for tauOS by: Jaiden Riordan <jade@fyralabs.com>
+ *
+ **************************************************************************/
 
-Window.GetMaxWidth = fun (){
-  i = 0;
-  width = 0;
-  while (Window.GetWidth(i)){
-    width = Math.Max(width, Window.GetWidth(i));
-    i++;
-    }
-  return width;
-};
+/*
+ * Related to the screen */
+ 
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+screen_x = Window.GetX();
+screen_y = Window.GetY();
 
-Window.GetMaxHeight = fun (){
-  i = 0;
-  height = 0;
-  while (Window.GetHeight(i)){
-    height = Math.Max(height, Window.GetHeight(i));
-    i++;
-    }
-  return height;
-};
+/**/
 
-anim.imagecount = 32;
-anim.target_width =  0.2* 0.46 * Window.GetWidth();
-anim.target_height =  0.2* 0.46 * Window.GetWidth();
+/*
+ * Images, check bits per pixel
+ * and load images accordingly */
 
-fun RotatedImage (index){
-	index = Math.Int(index);
-	if (!RotatedImageCache[index])
-		RotatedImageCache[index] = anim.original_image.Rotate((Math.Pi*2*index)/anim.imagecount).Scale(anim.target_width, anim.target_height);
+background_image = Image("wallpaper.png");
+passw_dialog_input_image = Image("passw-dialog.png");
+bullet_image = Image("test.png");
 
-	return RotatedImageCache[index];
-	}
+bpp = Window.GetBitsPerPixel();
 
+if (bpp == 4) {
 
-if (Plymouth.GetMode() == "suspend" || Plymouth.GetMode() == "resume") {
-  background.original_image = ImageNew("suspend.png");
-  Window.SetBackgroundTopColor(1, 0, 0);
-  Window.SetBackgroundBottomColor(0, 1, 0);
+	logotype_image = Image("logo_16bit.png");
+	progress_meter_image = Image("progress-meter_16bit.png");
+	progress_fade_image = Image("progress-fade_16bit.png");
+	fsck_progress_meter_image = Image("progress-meter_16bit.png");
+	fsck_progress_fade_image = Image("fsck-fade_16bit.png");
+
 }
 else {
-  logo.original_image = ImageNew("logo.png");
-  background.original_image = ImageNew("background.png");
-  Window.SetBackgroundTopColor(0.180, 0.545, 0.020);
-  Window.SetBackgroundBottomColor(0.439, 0.573, 0.333);
 
-  anim.image= ImageNew("animation.png");
-  anim.original_image= anim.image.Scale(anim.target_width, anim.target_width);
-
-  anim.sprite = SpriteNew();
-  anim.sprite.SetImage(RotatedImage (0));
-  anim.sprite.SetX((Window.GetX() + Window.GetWidth() - RotatedImage(0).GetWidth()) / 2);
-  anim.sprite.SetY(Window.GetY() + Window.GetHeight() * 0.37);
-  anim.angle = 0;
-  anim.index = 0;
-
- 
-}
-
-ratio =  logo.original_image.GetWidth() / logo.original_image.GetHeight();
-reduction = 0.4;
-logo.image = logo.original_image.Scale(reduction * Window.GetMaxWidth() , reduction / ratio *  Window.GetMaxWidth());
-logo.sprite = SpriteNew();
-logo.sprite.SetImage(logo.image);
-logo.opacity_angle = 0;
-logo.sprite.SetX((Window.GetX() + Window.GetMaxWidth()  - logo.image.GetWidth())  / 2);
-logo.sprite.SetY(Window.GetY() + Window.GetHeight() * 0.37);
-
-background.image = background.original_image.Scale(Window.GetMaxWidth() , Window.GetMaxHeight());
-background.sprite = SpriteNew();
-background.sprite.SetImage(background.image);
-background.sprite.SetPosition(Window.GetX(), Window.GetY(), -10);
-
-sprite_prompt = SpriteNew();
-
-fun refresh_callback ()
-  {
-    if (status == "normal")
-      {
-	anim.index += 1;
-	anim.index %= anim.imagecount;
-	anim.sprite.SetImage(RotatedImage (anim.index));
-        #anim.sprite.SetOpacity (1);
-	#motif.sprite.SetOpacity(motif.opacity);
-      }
-    else
-      {
-        anim.sprite.SetOpacity(0);
-	motif.sprite.SetOpacity(0);
-      }
-
-  }
- 
-if (Plymouth.GetMode() != "suspend" && Plymouth.GetMode() != "resume") {
-  Plymouth.SetRefreshFunction (refresh_callback);
-}
-
-#----------------------------------------- Dialog --------------------------------
-
-status = "normal";
-
-fun dialog_setup()
-  {
-    local.box;
-    local.lock;
-    local.entry;
-    local.prompt_sprite;
-    
-    box.image = ImageNew("box.png");
-    lock.image = ImageNew("lock.png");
-    entry.image = ImageNew("entry.png");
-    
-    box.sprite = SpriteNew();
-    box.sprite.SetImage(box.image);
-    box.x = Window.GetX() + Window.GetWidth()  / 2 - box.image.GetWidth()/2;
-    box.y = Window.GetY() + Window.GetHeight() / 2 - box.image.GetHeight()/2;
-    box.z = 10000;
-    box.sprite.SetPosition(box.x, box.y, box.z);
-    
-    lock.sprite = SpriteNew();
-    lock.sprite.SetImage(lock.image);
-    lock.x = box.x + box.image.GetWidth()/2 - (lock.image.GetWidth() + entry.image.GetWidth()) / 2;
-    lock.y = box.y + box.image.GetHeight()/2 - lock.image.GetHeight()/2;
-    lock.z = box.z + 1;
-    lock.sprite.SetPosition(lock.x, lock.y, lock.z);
-    
-    entry.sprite = SpriteNew();
-    entry.sprite.SetImage(entry.image);
-    entry.x = lock.x + lock.image.GetWidth();
-    entry.y = box.y + box.image.GetHeight()/2 - entry.image.GetHeight()/2;
-    entry.z = box.z + 1;
-    entry.sprite.SetPosition(entry.x, entry.y, entry.z);
-
-    prompt_sprite = SpriteNew();
-    prompt_sprite.SetPosition(box.x, box.y - 20, box.z);
-    
-    global.dialog.box = box;
-    global.dialog.lock = lock;
-    global.dialog.entry = entry;
-    global.dialog.bullet_image = ImageNew("bullet.png");
-    global.dialog.prompt_sprite = prompt_sprite;
-    dialog_opacity (1);
-  }
-    
-fun dialog_opacity(opacity)
-  {
-    dialog.box.sprite.SetOpacity(opacity);
-    dialog.lock.sprite.SetOpacity(opacity);
-    dialog.entry.sprite.SetOpacity(opacity);
-    dialog.prompt_sprite.SetOpacity(opacity);
-    for (index = 0; dialog.bullet[index]; index++)
-      {
-        dialog.bullet[index].sprite.SetOpacity(opacity);
-      }
-  }
-
-fun display_normal_callback ()
-  {
-    global.status = "normal";
-    if (global.dialog)
-      dialog_opacity (0);
-  }
-
-fun display_password_callback (prompt, bullets)
-  {
-    global.status = "password";
-    if (!global.dialog) 
-	dialog_setup();
-    else 
-	dialog_opacity(1);
-    motif.sprite.SetOpacity(0);
-    anim.sprite.SetOpacity(0);
+	logotype_image = Image("logo.png");
+	progress_meter_image = Image("progress-meter.png");
+	progress_fade_image = Image("progress-fade.png");
+	fsck_progress_meter_image = Image("progress-meter.png");
+	fsck_progress_fade_image = Image("fsck-fade.png");
 	
-    dialog.prompt_sprite.SetImage(Image.Text(prompt, 1.0, 1.0, 1.0));
-    for (index = 0; dialog.bullet[index] || index < bullets; index++)
-      { 
-	
-        if (!dialog.bullet[index])
-          {
-            dialog.bullet[index].sprite = SpriteNew();
-            dialog.bullet[index].sprite.SetImage(dialog.bullet_image);
-            dialog.bullet[index].x = dialog.entry.x + index * dialog.bullet_image.GetWidth();
-            dialog.bullet[index].y = dialog.entry.y + dialog.entry.image.GetHeight() / 2 - dialog.bullet_image.GetHeight() / 2;
-            dialog.bullet[index].z = dialog.entry.z + 1;
-            dialog.bullet[index].sprite.SetPosition(dialog.bullet[index].x, dialog.bullet[index].y, dialog.bullet[index].z);
-          }
-        if (index < bullets)
-          dialog.bullet[index].sprite.SetOpacity(1);
-        else
-          dialog.bullet[index].sprite.SetOpacity(0);
-      }
-  }
-
-fun display_message_callback (prompt)
-  {
-  
-prompt = Image.Text(prompt,1.0, 1.0, 1.0);
-sprite_prompt.SetImage(prompt);
-sprite_prompt.SetPosition(Window.GetX() + (Window.GetWidth() - prompt.GetWidth()) / 2, Window.GetY() + Window.GetHeight() * 0.93, 2);
-  }
-
-/* instantiate dialog at startup, to ensure all icons are loaded in memory before initrd is unmounted, in case /usr isn't mounted yet */
-dialog_setup(); dialog_opacity(0);
-Plymouth.SetDisplayNormalFunction(display_normal_callback);
-Plymouth.SetDisplayPasswordFunction(display_password_callback);
-Plymouth.SetMessageFunction(display_message_callback);
-
-#----------------------------------------- Progress Bar --------------------------------
-
-progress_box.image = Image("progress_box.png");
-progress_box.sprite = Sprite(progress_box.image);
-
-progress_box.x = Window.GetX() + Window.GetWidth() / 2 - progress_box.image.GetWidth() / 2;
-progress_box.y = Window.GetY() + Window.GetHeight() * 0.65 - progress_box.image.GetHeight() / 2;
-progress_box.sprite.SetPosition(progress_box.x, progress_box.y, 0);
-
-progress_bar.original_image = Image("progress_bar.png");
-progress_bar.sprite = Sprite();
-
-progress_bar.x = Window.GetX() + Window.GetWidth()  / 2 -        progress_bar.original_image.GetWidth() / 2;
-progress_bar.y = Window.GetY() + Window.GetHeight() * 0.65  - progress_box.image.GetHeight() / 2 + (progress_box.image.GetHeight() - progress_bar.original_image.GetHeight()) / 2;
-progress_bar.sprite.SetPosition(progress_bar.x, progress_bar.y, 1);
-
-fun progress_callback (duration, progress)
-  {
-    if (progress_bar.image.GetWidth () != Math.Int (progress_bar.original_image.GetWidth () * progress))
-      {
-        progress_bar.image = progress_bar.original_image.Scale(progress_bar.original_image.GetWidth(progress_bar.original_image) * progress, progress_bar.original_image.GetHeight());
-        progress_bar.sprite.SetImage (progress_bar.image);
-      }
-  }
-
-Plymouth.SetBootProgressFunction(progress_callback);
-
-#----------------------------------------- Quit --------------------------------
-
-fun quit_callback ()
-{
- anim.sprite.SetOpacity (0);
-  if (Plymouth.GetMode() == "shutdown") {
-   motif.sprite.SetOpacity(0);
-  }
 }
 
-Plymouth.SetQuitFunction(quit_callback);
+/**/
 
+/*
+ * Sprites */
+
+ratio = screen_height / screen_width;
+background_ratio = background_image.GetHeight() / background_image.GetWidth();
+factor = 0;
+
+if (ratio > background_ratio) {
+
+	factor = screen_height / background_image.GetHeight();
+
+}
+else {
+	
+	factor = screen_width / background_image.GetWidth();
+	
+}
+
+scaled = background_image.Scale(background_image.GetWidth() * factor, background_image.GetHeight() * factor);
+background_sprite = Sprite(scaled);
+background_sprite.SetX(screen_x + screen_width / 2 - scaled.GetWidth() / 2);
+background_sprite.SetY(screen_y + screen_height / 2 - scaled.GetHeight() / 2);
+
+logotype_sprite = Sprite(logotype_image);
+
+fsck_progress_meter_sprite = Sprite(fsck_progress_meter_image);
+fsck_progress_fade_sprite = Sprite(fsck_progress_fade_image.Scale(1, fsck_progress_fade_image.GetHeight()));
+
+passw_dialog_input_sprite = Sprite(passw_dialog_input_image);
+passw_lbl_sprite = Sprite();
+
+msg_label_sprite = Sprite();
+
+/**/
+
+/*
+ * Misc */
+
+counter = 0;
+
+fade_pos_x = (screen_width / 2) - (progress_meter_image.GetWidth() / 2);
+fade_dir = 0; /* 0 = right, 1 = left */
+
+fsck_running = 0;
+fsck_dev_array;
+fsck_dev_counter = 0;
+fsck_fade_in_counter = 0;
+fsck_done_fading = 0;
+
+stars_array;
+stars_n = 0;
+
+//full_msg = "";
+msgs_line = [NULL,NULL,NULL,NULL,NULL];
+
+/**/
+
+/*
+ * Debug related */
+ 
+debug = 0;
+debug_sprite = Sprite();
+
+fun debugOutput(str) {
+	
+	/*
+	 * This will print to the top left corner */
+	debug_sprite.SetImage(Image.Text(str));
+	
+}
+
+/**/
+
+/*
+ * Setup the graphics properties */
+logotype_sprite.SetPosition(screen_x + (screen_width / 2) - (logotype_image.GetWidth() / 2), screen_y + (screen_height / 2) - (logotype_image.GetHeight() / 2));
+fsck_progress_meter_sprite.SetPosition(screen_x + (screen_width / 2) - (progress_meter_image.GetWidth() / 2), screen_y + (screen_height / 2) + (logotype_image.GetHeight() / 2) + 25);
+fsck_progress_fade_sprite.SetPosition(screen_x + (screen_width / 2) - (progress_meter_image.GetWidth() / 2), screen_y + (screen_height / 2) + (logotype_image.GetHeight() / 2) + 25);
+fsck_progress_meter_sprite.SetOpacity(0);
+fsck_progress_fade_sprite.SetOpacity(0);
+passw_dialog_input_sprite.SetPosition(screen_x + (screen_width / 2) - (passw_dialog_input_image.GetWidth() / 2), screen_y + (screen_height / 2) + (logotype_image.GetHeight() / 2) + 70);
+passw_dialog_input_sprite.SetOpacity(0);
+passw_lbl_sprite.SetOpacity(0);
+
+spin = 0;
+
+/*
+ * this function only goes up to 100
+ * because thats all thats needed for
+ * the progress meter bar */
+fun atoi(str) {
+   
+    int = -1;
+   
+    for (i = 0; i <= 100; i++) {
+    
+        if (i + "" == str) {
+            
+            int = i;
+            
+            break;
+        
+        }
+    
+    }
+    
+    return int;
+
+}
+
+/*
+ * This handler will/can be invoked
+ * 50 times per second.
+ * 
+ * According to the previous author of the
+ * splash script, without this callback
+ * the screen is not updated correctly */
+spinner_sprite;
+spinner;
+
+fun refreshHandler() {
+	
+	if (spin < 3.14 * 2) {
+	
+		spin = spin + 0.1;
+	
+	}
+	else {
+	
+		spin = 0;
+	
+	}
+	
+	/* if fsck is running or the password is prompted, hide the spinner */
+	if (fsck_running == 1 || passw_dialog_input_sprite.GetOpacity() == 1) {
+	
+		spinner_sprite.SetOpacity(0);
+	
+	} else {
+	
+		spinner = Image("spinner.png");
+		spinner = spinner.Rotate(spin);
+		spinner_sprite = Sprite(spinner);
+		spinner_sprite.SetPosition(screen_x + (screen_width / 2) - (spinner.GetWidth() / 2), screen_y + (screen_height / 2) - (spinner.GetHeight() / 2) + 80);	
+	
+	}
+	
+	if (fade_dir == 0) {
+		
+		counter++;
+		
+		if (counter >= 200) {
+			
+			fade_dir = 1;
+		
+		}
+		
+	}
+	else {
+		
+		counter--;
+		
+		if (counter <= 0) {
+			
+			fade_dir = 0;
+		
+		}
+		
+	}
+	
+	if ((fsck_running == 1) && (fsck_done_fading == 0)) {
+		
+		
+		fsck_progress_meter_sprite.SetOpacity(fsck_fade_in_counter);
+		fsck_progress_fade_sprite.SetOpacity(fsck_fade_in_counter);
+		
+		if (fsck_fade_in_counter < 1) {
+		
+			fsck_fade_in_counter+= 0.025;
+		
+		}
+		else {
+			
+			fsck_done_fading = 1;
+			
+		}
+		
+	}
+	
+}
+
+Plymouth.SetRefreshFunction (refreshHandler);
+
+/**/
+
+/*
+ * This function will display the password related information
+ * when being prompt with entering a password */
+fun showPasswordHandler(prompt, stars) {
+	
+	if (passw_dialog_input_sprite.GetOpacity() == 0 && passw_lbl_sprite.GetOpacity() == 0) {
+		
+		passw_dialog_input_sprite.SetOpacity(1);
+		passw_lbl_sprite.SetOpacity(1);
+		
+	}
+	
+	tmp_prompt_image = Image.Text(prompt, 1, 1, 1);
+
+	passw_lbl_sprite.SetImage(tmp_prompt_image);
+	passw_lbl_sprite.SetPosition(screen_x + (screen_width / 2) - (tmp_prompt_image.GetWidth() / 2), screen_y + (screen_height / 2) + (logotype_image.GetHeight() / 2) + 50);
+	
+	for(i = 0; i < stars_n; i++)  {
+	
+		stars_array[i] = NULL;
+	
+	}
+	
+	stars_n = 0;
+
+	for(i = 0; (i < stars) && (i < 15); i++) {
+		
+		stars_array[i] = Sprite(bullet_image);
+		stars_array[i].SetPosition(screen_x + (((screen_width / 2) - (passw_dialog_input_image.GetWidth() / 2)) + (18 * i)) + 2, screen_y + (screen_height / 2) + (logotype_image.GetHeight() / 2) + 75);
+		stars_n++;
+		
+	}
+	
+}
+
+Plymouth.SetDisplayPasswordFunction(showPasswordHandler);
+
+/**/
+
+fun displayNormalHandler() {
+
+	/*
+	 * Hide the password dialog and the bullets */
+	
+	if (passw_dialog_input_sprite.GetOpacity() == 1) {
+		
+		passw_dialog_input_sprite.SetOpacity(0);
+		
+	}
+	
+	if (passw_lbl_sprite.GetOpacity() == 1) {
+		
+		passw_lbl_sprite.SetOpacity(0);
+		
+	}
+	
+	for(i = 0; i < stars_n; i++) {
+		
+		stars_array[i] = NULL;
+		
+	}
+
+}
+
+Plymouth.SetDisplayNormalFunction(displayNormalHandler);
+
+fun strlen(string) {
+    
+	i = 0;
+    
+	while (String(string).CharAt(i)) {
+	
+		i++;
+    
+	}
+	
+	return i;
+
+}
+
+/*
+ * This function will display the most current message */
+fun messageHandler(msg) {
+	
+	if ((msg == "") || !msg) {
+		
+		return 0;
+		
+	}
+	
+	if (msg.SubString(0, 5) == "keys:") {
+	
+		msg = msg.SubString(5, strlen(msg));
+	
+	}
+	
+	//full_msg += msg + " ";
+	for(i = 4; i > 0; i--) {
+
+		msgs_line[i] = msgs_line[i - 1];
+	
+	}
+	
+	msgs_line[0] = Sprite(Image.Text(msg, 1, 1, 1));
+	
+	dist = 1;
+	
+	for(i = 0; i < 5; i++) {
+
+		if (msgs_line[i] != NULL) {
+
+			msgs_line[i].SetPosition(screen_x + (screen_width / 2) - (msgs_line[i].GetImage().GetWidth() / 2), screen_y + (screen_height - msgs_line[i].GetImage().GetHeight()) - 20*dist);
+			dist++;
+
+		}
+
+	}
+
+}
+
+Plymouth.SetMessageFunction(messageHandler);
+
+/**/
+
+/*
+ * Handles the updates passed to the plymouth daemon
+ * for example the FSCK data */
+fun statusHandler(status) {
+	
+	tmp_char;
+	status_array[0] = "";
+	elem_count = 0;
+	
+	for (i = 0; String(status).CharAt(i) != ""; i++) {
+	
+		tmp_char = String(status).CharAt(i);
+		
+		if (tmp_char != ":") {
+		
+			status_array[elem_count] += tmp_char;
+		
+		}
+		else {
+			
+			elem_count++;
+			status_array[elem_count] = "";
+			
+		}
+		
+	}
+
+	if (status_array[0] == "fsck") {
+	
+		already_added = 0;
+		
+		if (fsck_running == 0) {
+			
+			/*
+			 * use the dedicated message handler for this
+			 * since there is no messages about fsck checks
+			 * currently... */
+			messageHandler("Routine disk drive check.");
+			
+			fsck_running = 1;
+			
+		}
+		
+		for(i = 0; i < fsck_dev_counter; i++) {
+			
+			/* 
+			 * check if the device already exist and update
+			 * the progress only in that case */
+			if (fsck_dev_array[i][0] == status_array[1]) {
+				
+				fsck_dev_array[i][1] = status_array[2]; /* progress */
+				already_added = 1;
+			
+			}
+			
+		}
+
+		/*
+		 * if the device is not added, then add it */
+		if (already_added == 0) {
+			
+			fsck_dev_array[fsck_dev_counter][0] = status_array[1]; /* device */
+			fsck_dev_array[fsck_dev_counter][1] = status_array[2]; /* progress */
+			fsck_dev_counter++;
+			
+		}
+	
+		/*
+		 * update the progress */
+		
+		total = 0;
+		
+		for(i = 0; i < fsck_dev_counter; i++) {
+			
+			total += atoi(fsck_dev_array[i][1]);
+			
+		}
+
+		if (fsck_dev_counter > 0) {
+		
+			/*
+			*  display the total percentage */
+			fsck_progress_fade_sprite.SetImage(fsck_progress_fade_image.Scale((fsck_progress_meter_image.GetWidth() / 100) * (total / fsck_dev_counter), fsck_progress_fade_image.GetHeight()));
+		
+		}
+		
+		/**/
+		
+		/*
+		 * if the total progress is at maximum, 
+		 * make the progress meter go away,
+		 * we might want to fade this out... */	
+		if (total == (100 * fsck_dev_counter)) {
+			
+			fsck_progress_meter_sprite.SetOpacity(0);
+			fsck_progress_fade_sprite.SetOpacity(0);
+		
+		}
+	
+	}
+	
+}
+
+Plymouth.SetUpdateStatusFunction(statusHandler);
+
+/**/

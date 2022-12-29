@@ -1,6 +1,6 @@
 [Plymouth Theme]
-Name=tauOS theme
-Description=tauOS Plymouth Theme
+Name=tauOS Plymouth Theme v2
+Description=The tauOS Plymouth Theme
 ModuleName=script
 
 [script]
