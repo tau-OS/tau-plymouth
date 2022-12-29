@@ -42,6 +42,6 @@ fi
 
 %changelog
 * Thu Dec 29 2022 Jaiden Riordan <jade@fyralabs.com> - 2-1
-- Initial Release
+- New theme
 * Fri Apr 8 2022 Jamie Murphy <jamie@fyralabs.com> - 1.1-1
 - Initial Release
